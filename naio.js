@@ -10,7 +10,7 @@ var connectIndex = 0;
 Math.radians = function(degrees) {
   return degrees * Math.PI / 180;
 };
- 
+
 // Converts from radians to degrees.
 Math.degrees = function(radians) {
   return radians * 180 / Math.PI;
@@ -24,7 +24,6 @@ function nconnect(HOST, PORT) {
 	    if(connectIndex == 3) {
 	    	main();
 	    }
-	    
 	});
 	client.on('error', function() {
     	console.log('!!!!!!!!! Connection error !!!!!!!!!');
@@ -413,15 +412,30 @@ function moveForward() {
 
 function getLidarData() {
 	console.log('getLidarData')
+  var tmp = lidarData.slice(101, 467);
+  lidarData = tmp;
 	console.log(lidarData);
 	console.log(lidarData.length)
 	return lidarData;
 }
 
 function getGyroData() {
-	console.log('getGyroData');
-	console.log(gyroData);
-	return gyroData;
+  console.log('getGyroData');
+  console.log(gyroData);
+
+  var degs = gyroData.slice(16, 17);
+  var check = gyroData.slice(15, 16);
+
+  degs = degs.readInt16BE();
+  check = check.readInt16BE();
+
+  if (check == 1) {
+    return degs;
+  } else if (check == 0) {
+    return (degs - 200);
+  } else {
+    console.log('Probleme Gyro');
+  }
 }
 
 function turnBackWardLeft() {
