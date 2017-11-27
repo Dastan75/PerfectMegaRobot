@@ -1,8 +1,8 @@
 const			net						= require('net');
 var				lidarData			= "";
 var				gyroData			= "";
-// const			IP						= '127.0.0.1';
-const			IP						= '192.168.1.95';
+const			IP						= '127.0.0.1';
+// const			IP						= '192.168.1.95';
 var				trameMotor		= '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
 var connectIndex = 0;
 
@@ -426,8 +426,12 @@ function getGyroData() {
   var degs = gyroData.slice(16, 17);
   var check = gyroData.slice(15, 16);
 
-  degs = degs.readInt16BE();
-  check = check.readInt16BE();
+  degs = ((degs[0] & 0xff) << 8) | (degs[1] & 0xff);
+  check = ((check[0] & 0xff) << 8) | (check[1] & 0xff);
+  // degs = degs.readInt16BE();
+  // check = check.readInt16BE();
+  console.log('Check :', check);
+  console.log('Degs :', degs);
 
   if (check == 1) {
     return degs;
