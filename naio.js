@@ -135,7 +135,7 @@ function main() {
 				}
 
 				for(var i = 0; i < indexArray.length; i += 1) {
-					calcArray.push(Math.round(Math.cos(Math.radians(indexArray[i]))*distanceArray[i]))
+					calcArray.push((Math.cos(Math.radians(indexArray[i]))*distanceArray[i]).toFixed(2));
 					//console.log("lstindex : ",lstIndex[i])
 					//console.log("lstdistance : ",lstDistance[i])
 					//console.log("lstcalc : ",lstCalc[i])
@@ -143,12 +143,12 @@ function main() {
 				}
 
 				// console.log(calcArray)
-				console.log('distanceArray');
-				console.log(distanceArray)
-				console.log('calcArray')
-				console.log(calcArray)
-				console.log('indexArray')
-				console.log(indexArray)
+				// console.log('distanceArray');
+				// console.log(distanceArray)
+				// console.log('calcArray')
+				// console.log(calcArray)
+				// console.log('indexArray')
+				// console.log(indexArray)
 
 				for(var i = 0; i < calcArray.length; i += 1) {
 					for(var j = 0; j < calcArray.length; j += 1) {
@@ -336,11 +336,11 @@ function main() {
 						isPaused = false;
 					}
 				} else if (indexArray.every(isOverNinety)) {
-					console.log(indexArray)
+					// console.log(indexArray)
 					console.log("Obstacle uniquement sur la droite")
 					moveForward()
 				} else if (indexArray.every(isBelowNinety)) {
-					console.log(indexArray)
+					// console.log(indexArray)
 					console.log("Obstacle uniquement sur la gauche")
 					moveForward()
 				} else if (indexArray.every(isBetweenSixtyAndOneTwenty)) {
@@ -462,7 +462,7 @@ function getLidarData() {
 		// var x = new Uint16Array(bytes)
 		var ntest = jspack.jspack.Unpack('H', bytes);
 		
-		console.log(ntest);
+		// console.log(ntest);
 		ndata.push(ntest);
 	}
 
