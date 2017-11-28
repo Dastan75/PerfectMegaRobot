@@ -4,7 +4,7 @@ var				lidarData			= "";
 var				gyroData			= "";
 // const			IP						= '127.0.0.1';
 // const			IP						= '192.168.1.95';
-const			IP						= '27.18.56.70';
+const			IP						= '192.168.10.194';
 var				trameMotor		= '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
 var connectIndex = 0;
 
@@ -24,7 +24,7 @@ function nconnect(HOST, PORT) {
 	    console.log('CONNECTED TO: ' + HOST + ':' + PORT);
 	    connectIndex ++;
 	    if(connectIndex == 3) {
-	    	main();
+	    	// main();
 	    	console.log('========================================================================================');
 	    }
 	});
@@ -41,20 +41,34 @@ function hex2a(hex) {
     return hex;
 }
 
-function nlistenGyro(client) {
+// function nlistenGyro(client) {
+// 	client.on('data', function(data) {
+// 		gyroData = hex2a(data);
+// 	});
+// }
+
+function nlistenLidarAndGyro(client) {
 	client.on('data', function(data) {
-		gyroData = hex2a(data);
+		console.log('receive lidar data')
+		console.log(data.length);
+
+		// console.log(hex2a(data));
+		// console.log("lydar", data)
+		// lidarData = hex2a(data);
+		// lidarData = data;
+		// getLidarData();
 	});
 }
 
 function nlistenLidar(client) {
 	client.on('data', function(data) {
 		console.log('receive lidar data')
+		console.log(data.length);
 
 		// console.log(hex2a(data));
 		// console.log("lydar", data)
 		// lidarData = hex2a(data);
-		lidarData = data;
+		// lidarData = data;
 		// getLidarData();
 	});
 }
@@ -66,13 +80,16 @@ function nmove (client, trameMotor) {
 	// }, 30);
 }
 
-var n_motor = nconnect(IP, 3331);
-var n_lidar = nconnect(IP, 3337);
-var n_gyro 	= nconnect(IP, 3340);
+// var n_motor = nconnect(IP, 3331);
+// var n_lidar = nconnect(IP, 3337);
+// var n_gyro 	= nconnect(IP, 3340);
 
+var n_motor = nconnect(IP, 5555);
+var n_lidarAndGyro = nconnect(IP, 5555);
+// var n_gyro 	= nconnect(IP, 5555);
 
-nlistenLidar(n_lidar);
-nlistenGyro(n_gyro);
+nlistenLidarAndGyro(n_lidarAndGyro);
+// nlistenGyro(n_gyro);
 nmove(n_motor);
 
 
