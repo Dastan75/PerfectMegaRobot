@@ -446,7 +446,7 @@ function Virage3t(nextVirage) {
 		var angle = 0;
 		var degs = 0;
 		var newInterval = setInterval(function() {
-			if(!(angle < (90 + angleCor))) {
+			if(!(angle < (45 + angleCor))) {
 				clearInterval(newInterval);
 				rotation90Arriere();
 			}
@@ -465,7 +465,7 @@ function Virage3t(nextVirage) {
 		var angle = 0;
 		var degs = 0;
 		var newInterval = setInterval(function() {
-			if(!(angle < 40)) {
+			if(!(angle < 20)) {
 				clearInterval(newInterval);
 				endVirage3T();
 			}
