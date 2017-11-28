@@ -1,7 +1,6 @@
 const			net						= require('net');
 const           jspack				= require('jspack');
 // const           utils               = require('utils.js')()
-var				lidarData			= "";
 var				gyroData			= "";
  // const			IP						= '127.0.0.1';
 const			IP						= '192.168.1.95';
@@ -9,6 +8,7 @@ const			IP						= '192.168.1.95';
 var				trameMotor		= '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
 var connectIndex = 0;
 var intervalTime = 30;
+var handledLidarData = [];
 
 // Converts from degrees to radians.
 Math.radians = function(degrees) {
@@ -51,23 +51,18 @@ function hex2a(hex) {
 
 function nlistenLidarAndGyro(client) {
 	client.on('data', function(data) {
-		console.log('receive lidar data')
-		console.log(data.length);
+		// console.log('receive lidar data')
+		// console.log(data.length);
 		// console.log(hex2a())
 
 		// console.log(hex2a(data));
 		if (data[6] == '0x0A') {
-			console.log('Gyro');
+			// console.log('Gyro');
 			gyroData = hex2a(data);
 		}
 		if (data[6] == '0x07') {
-			console.log('Lidar');
-			lidarData = data;	
+			handledLidarData = handleLidarData(data);
 		}
-		// console.log("lydar", data)
-		// lidarData = hex2a(data);
-		// lidarData = data;
-		// getLidarData();
 	});
 }
 
@@ -78,13 +73,13 @@ function nlistenLidarAndGyro(client) {
 
 // 		// console.log(hex2a(data));
 // 		// console.log("lydar", data)
-// 		// lidarData = hex2a(data);
-// 		// lidarData = data;
 // 		// getLidarData();
 // 	});
 // }
 
 function nmove (client, trameMotor) {
+	// console.log(trameMotor);
+	// console.log(trameMotor[12])
 	// setInterval(function(){
 		// console.log('sending frame');
 	client.write(trameMotor + "\n");
@@ -136,7 +131,7 @@ function main() {
 	var tempArray = [];
 	var tempArray2 = [];
 
-	var lidarData, oldLidarData;
+	var internalLidarData, oldLidarData;
 	var init = 1;
 	var distanceD = 0;
 	var distanceG = 0;
@@ -150,11 +145,11 @@ function main() {
 			// Gps = Com.Gps()
 			// if(all((Value == 4000)for Value in data)):
 				// Virage3t()
-			lidarData = getLidarData();
-			console.log(lidarData)
-			console.log(oldLidarData)
-			console.log(lidarData.equals(oldLidarData));
-			if ((!lidarData.equals(oldLidarData)) && (init != 1)) {
+			internalLidarData = getLidarData();
+			// console.log(internalLidarData)
+			// console.log(oldLidarData)
+			// console.log(internalLidarData.equals(oldLidarData));
+			if ((!internalLidarData.equals(oldLidarData)) && (init != 1)) {
 				console.log("Obstacle Détecté")
 				indexArray = [];
 				distanceArray = [];
@@ -163,31 +158,34 @@ function main() {
 				alignArray2 = [];
 				tempArray = [];
 				tempArray2 = [];
-				console.log('lidarData.length')
-				console.log(lidarData.length)
-				for(var i = 0; i < lidarData.length; i += 1) {
-					if(lidarData[i] != oldLidarData[i]) {
-						console.log(i);
+				for(var i = 0; i < internalLidarData.length; i += 1) {
+					if(internalLidarData[i] != oldLidarData[i]) {
+						// console.log('i : ' + i);
 						indexArray.push(i)
-						distanceArray.push(lidarData[i])
+						// console.log('lidar[i] : ' + internalLidarData[i])
+						distanceArray.push(internalLidarData[i])
 					}
 				}
 
 				for(var i = 0; i < indexArray.length; i += 1) {
+					//cos(angle) = cote adjacent / hypothenuse
+					//cote adjacent = cos(angle) * hypothenuse
 					var rad = Math.radians(indexArray[i]);
 					var cos = Math.cos(rad);
-					var calcValue = Math.round10(cos * distanceArray[i], 1);
+					// console.log('Distance Array : ' + distanceArray[i])
+					var calcValue = Math.round10(cos * distanceArray[i], 2);
+					// console.log("DistanceLaterale : " + calcValue);
 					calcArray.push(calcValue);
 
 				}
 
-				console.log(calcArray)
-				console.log('distanceArray');
-				console.log(distanceArray)
+				// console.log(calcArray)
+				// console.log('distanceArray');
+				// console.log(distanceArray)
 				console.log('calcArray')
 				console.log(calcArray)
-				console.log('indexArray')
-				console.log(indexArray)
+				// console.log('indexArray')
+				// console.log(indexArray)
 
 				for(var i = 0; i < calcArray.length; i += 1) {
 					for(var j = 0; j < calcArray.length; j += 1) {
@@ -197,33 +195,32 @@ function main() {
 							&& (calcArray[j] != 0)
 							&& (calcArray[i] != 0)
 							) {
-							result = alignArray1.indexOf(calcArray[j]);
-							// console.log("result")
-							// console.log(result)
+							result = alignArray1.indexOf(calcArray[i]);
+							// console.log("Result : " + result);
 							if (result == -1) {
-								alignArray1.push(calcArray[j])
+								alignArray1.push(calcArray[i])
 								tmp = []
-								tmp.push(indexArray[j])
+								tmp.push(indexArray[i])
 								alignArray2.push(tmp)
 							} else {
-								result2 = alignArray2[result].indexOf(indexArray[j]);
+								result2 = alignArray2[result].indexOf(indexArray[i]);
 								if (result2 == -1) {
-									alignArray2[result].push(indexArray[j])
+									alignArray2[result].push(indexArray[i])
 								}
 							}
 						}
 					}
 				}
 
-				console.log('alignArray2')
-				console.log(alignArray2)
+				// console.log('alignArray2')
+				// console.log(alignArray2)
 
 				var alignArray = [];
 				var maxLigne = 0;
 				alignArray = removeDuplicates(alignArray1)
 				size = 0
 
-				console.log(alignArray2)
+				// console.log(alignArray2)
 
 				for(var i = 0; i < alignArray2.length; i += 1) {
 					size += alignArray2[i].length;
@@ -233,8 +230,8 @@ function main() {
 					average = Math.floor(size / alignArray2.length);
 				}
 				//console.log ("Avg", average)
-				console.log('tempArray')
-				console.log(tempArray)
+				// console.log('tempArray')
+				// console.log(tempArray)
 				if (tempArray.length > 0) {
 					// maxLigne = Math.max(tempArray);
 					var maxLigne = tempArray.reduce(function(a,b) {
@@ -245,23 +242,39 @@ function main() {
 				w = 1;
 				distanceD = 0;
 				distanceG = 0;
+
+				console.log('ALIGN ARRAY 1');
+				console.log(alignArray1);
+
+				console.log('ALIGN ARRAY 2');
+				console.log(alignArray2);
+
 				while (w == 1) {
 					w = 0
 					for (var i = 0; i < alignArray2.length; i += 1) {
 						//console.log ("Size : ", len(lstAlign2[j]), ", IT : ", j)
 						if (alignArray2[i].length < average) {
+							// console.log('SPLICING I : ' + i)
 							alignArray1.splice(i, 1);
 							alignArray2.splice(i, 1);
-							w = 1
-							break
+							w = 1;
+							break;
 						}
 					}
 				}
 
+
+				console.log('ALIGN ARRAY 1 AFTER SPLICING');
+				console.log(alignArray1);
+
+				console.log('ALIGN ARRAY 2 AFTER SPLICING');
+				console.log(alignArray2);
+
+
 				alignArray1.push(4000);
 				alignArray1.push(-4000);
 				//Correction Trajectoire
-				console.log(alignArray1)
+
 				for(index in alignArray1) {
 					var value = alignArray1[index];
 					if(value < 0) {
@@ -273,20 +286,28 @@ function main() {
 					}
 				}
 
-
+				console.log('HANDLING DISTANCE DROITE');
+				console.log(tempArray)
 				// distanceD = Math.min(tempArray);
 				var distanceD = tempArray.reduce(function(a,b) {
 				  return Math.min(a, b);
 				});
 
+				console.log('distanceD : ' + distanceD);
+
 				if (distanceD > 1000) {
 					distanceD = 0;
 				}
+
+				console.log('HANDLING DISTANCE GAUCHE');
+				console.log(tempArray2)
 
 				// distanceG = Math.min(tempArray2)
 				var distanceG = tempArray2.reduce(function(a,b) {
 				  return Math.min(a, b);
 				});
+
+				console.log('distanceG : ' + distanceG)
 
 				if (distanceG > 1000) {
 					distanceG = 0;
@@ -294,6 +315,9 @@ function main() {
 				if ((distanceD != 0) && (distanceG != 0)) {
 					invRota = 0;
 				}
+
+				console.log("Droite : " + distanceD)
+				console.log("Gauche : " + distanceG)
 
 				if((distanceD == 0) && (distanceG>0) && (distanceG<700)) {
 					console.log("NOLIGNEDROITE");
@@ -325,12 +349,11 @@ function main() {
 
 				//Sequence d'instruction Motors
 
-				console.log("Droite : " + distanceD)
-				console.log("Gauche : " + distanceG)
 				console.log("dataDistanceD : " + dataDistanceD)
 				console.log("dataDistanceG : " + dataDistanceG)
 				console.log("maxLigne : " + maxLigne)
 				console.log("recentrage : " + recentrage)
+				console.log("angleCor : " + angleCor)
 
 				if ((recentrage == 1) && (maxLigne >= 12)) {
 					recentrage = 0
@@ -338,58 +361,97 @@ function main() {
 				if ((recentrage == 1) && (maxLigne < 12)) {
 					console.log("Recentrage aprés virage")
 					// for(var i = 0; i < 10; i += 1) {
-						if(nextVirage == 'droite') {
-							turnForwardLeft();
-						} else {
-							turnForwardRight();
-						}
+						var i = 0;
+						var newInterval = setInterval(function() {
+							if((i >= 7)) {
+								clearInterval(newInterval);
+								endFunction();
+							}
+							if(nextVirage === 'droite') {
+								turnForwardLeft();
+							} else {
+								turnForwardRight();
+							}
+							i++;
+						}, intervalTime);		
 					// }
 				} else if (((distanceD + distanceG) / 2) > distanceG) {
-					console.log("Correction vers la droite")
-					turnForwardRight()
-					angleCor = angleCor + 0.3
+					console.log("Correction vers la droite");
+					var i = 0;
+					var newInterval = setInterval(function() {
+						if(i >= 3) {
+							clearInterval(newInterval);
+							endFunction();
+						} 
+						turnForwardRight();
+						angleCor = angleCor + 0.3;
+						i++;
+					}, intervalTime);
+
 				} else if (((distanceD + distanceG) / 2) > distanceD) {
-					console.log("Correction vers la gauche")
-					turnForwardLeft()
-					angleCor = angleCor - 0.3
-				} else if ((distanceD == dataDistanceD) && (distanceG == dataDistanceG)) {
+					console.log("Correction vers la gauche");
+					var i = 0;
+					var newInterval = setInterval(function() {
+						if(i >= 3) {
+							clearInterval(newInterval);
+							endFunction();
+						} 
+						turnForwardLeft();
+						angleCor = angleCor - 0.3;
+						i++;
+					}, intervalTime);
+				} else if (distanceD == distanceG) {
 					console.log("Le robot semble au milieu")
+					endFunction();
 				} else {
 					console.log("Probleme de correction de trajectoire")
+					console.log("AAAAAAAAAAAHHHHHHHHHHHHHAAAAAAAAAAHAHAHHAHAHAHAHAHAHAHHAHAHAHAHAHAHHAHAHAHAHAHAHHAHAHAHAHAHHAHAHAHAHAHHAHAAHAH")
+					endFunction();
 				}
 
-				dataDistanceD = distanceD;
-				dataDistanceG = distanceG;
-				if ((distanceD == 0) && (distanceG == 0)) {
-					console.log("Pas de ligne d'avancement detecté")
-					if(recentrage == 0) {
-						//Inversion de la Rotation
-						if(invRota == 2) {
-							if(nextVirage == 'droite') {
-								nextVirage = 'gauche';
-							} else if (nextVirage == 'gauche') {
-								nextVirage = 'droite';
+				function endFunction() {
+					console.log('dataDistanceD : ' + dataDistanceD );
+					console.log('dataDistanceG : ' + dataDistanceG );
+					dataDistanceD = distanceD;
+					dataDistanceG = distanceG;
+					console.log('NewdataDistanceD : ' + dataDistanceD );
+					console.log('NewdataDistanceG : ' + dataDistanceG );
+					console.log('invRota : ' + invRota);
+					console.log('nextVirage : ' + nextVirage);
+					if ((distanceD == 0) && (distanceG == 0)) {
+						console.log("Pas de ligne d'avancement detecté")
+						if(recentrage == 0) {
+							//Inversion de la Rotation
+							if(invRota == 2) {
+								if(nextVirage == 'droite') {
+									newNextVirage = 'gauche';
+								} else if (nextVirage == 'gauche') {
+									newNextVirage = 'droite';
+								}
+								setNextVirage(newNextVirage);
 							}
+							//Rotation
+							console.log('VEUT FAIRE Virage3t')
+							isPaused = true;
+							Virage3t(nextVirage);
 						}
-						//Rotation
-						console.log('VEUT FAIRE Virage3t')
-						isPaused = true;
-						Virage3t(nextVirage);
-					}
-				} else if (indexArray.every(isOverNinety)) {
-					// console.log(indexArray)
-					console.log("Obstacle uniquement sur la droite")
-					moveForward()
-				} else if (indexArray.every(isBelowNinety)) {
-					// console.log(indexArray)
-					console.log("Obstacle uniquement sur la gauche")
-					moveForward()
-				} else if (indexArray.every(isBetweenSixtyAndOneTwenty)) {
-					console.log("Obstacle sur trajectoire")
-				} else {
-					moveForward()
-					// Gpstemp = Gps
+					} else if (indexArray.every(isOverNinety)) {
+						// console.log(indexArray)
+						console.log("Obstacle uniquement sur la droite")
+						moveForward()
+					} else if (indexArray.every(isBelowNinety)) {
+						// console.log(indexArray)
+						console.log("Obstacle uniquement sur la gauche")
+						moveForward()
+					} else if (indexArray.every(isBetweenSixtyAndOneTwenty)) {
+						console.log("Obstacle sur trajectoire")
+					} else {
+						moveForward()
+						// Gpstemp = Gps
+					}					
 				}
+
+
 
 
 			// else if(Gps == Gpstemp):
@@ -403,13 +465,12 @@ function main() {
 						// console.log("Echec du désembourbage, SOS SOS SOS")
 			} else {
 				moveForward();
-				// turnBackWardLeft();
 				console.log("Action Par Default");
 				init = 0;
 				// Gpstemp = Gps;
 				// datatemp = data;
 			}
-			oldLidarData = lidarData;
+			oldLidarData = internalLidarData;
 		}
 	}, intervalTime);
 	return 0
@@ -428,14 +489,14 @@ function isBetweenSixtyAndOneTwenty(currentValue) {
 	return (currentValue > 60) && (currentValue < 120);
 }
 
-function Virage3t(nextVirage) {
+function Virage3t() {
 	console.log("Init Virage3t")
 	//Prise de distance
 	// console.log("debut de prise de distance")
 	function priseDeDistance() {
 		var i = 0;
 		var newInterval = setInterval(function() {
-			if(i >= 50) {
+			if(i >= 75) {
 				clearInterval(newInterval);
 				rotation90Avant();
 			}
@@ -448,18 +509,19 @@ function Virage3t(nextVirage) {
 		var angle = 0;
 		var degs = 0;
 		var newInterval = setInterval(function() {
-			if(!(angle < (45 + angleCor))) {
-				clearInterval(newInterval);
-				rotation90Arriere();
-			}
-			if(nextVirage === 'droite') {
+			if(nextVirage == 'droite') {
 				turnForwardRight();
 			} else {
 				turnForwardLeft();
 			}
 			degs = getGyroData();
 			angle = angle + (degs);
-			console.log("Angle : " + angle)
+			console.log("Angle : " + angle);
+			console.log("angleCor : " + angleCor);
+			if(!(angle < (35))) {
+				clearInterval(newInterval);
+				rotation90Arriere();
+			}
 		}, intervalTime);		
 	}
 
@@ -467,69 +529,69 @@ function Virage3t(nextVirage) {
 		var angle = 0;
 		var degs = 0;
 		var newInterval = setInterval(function() {
-			if(!(angle < 20)) {
-				clearInterval(newInterval);
-				endVirage3T();
-			}
-			if(nextVirage === 'droite') {
+			if(nextVirage == 'droite') {
 				turnBackWardLeft();
 			} else {
 				turnBackWardRight();
 			}
 			degs = getGyroData();
 			angle = angle + (degs);
-			console.log("Angle : " + angle)
+			console.log("Angle : " + angle);
+			if(!(angle < 20)) {
+				clearInterval(newInterval);
+				endVirage3T();
+			}
 		}, intervalTime)		
 	}
 
 	function endVirage3T() {
-		if(nextVirage === 'droite') {
-			nextVirage = 'gauche';
+		if(nextVirage == 'droite') {
+			var newNextVirage = 'gauche';
 		} else {
-			nextVirage = 'droite';
+			var newNextVirage = 'droite';
 		}
+
+		console.log('nextVirage at end 3t : ' + newNextVirage);
 
 		recentrage = 1;
 		invRota = 1;
 		saveOneRange = -1;
-		isPaused = false;		
+		isPaused = false;
+		setNextVirage(newNextVirage);		
 	}
 
 	priseDeDistance();
 
 }
 
+function setNextVirage(newNextVirage) {
+	console.log('Set new virage to : ' + newNextVirage);
+	console.log('Old nextVirage was : ' + nextVirage);
+	nextVirage = newNextVirage;
+}
+
 function moveForward() {
 	console.log('moveForward');
-	trameMotor = 	'\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
+	var trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
 	nmove(n_motor, trameMotor);
 }
 
-function getLidarData() {
-	// console.log('getLidarData')
-	// return lidarData;
-	// console.log(lidarData);
+function handleLidarData(lidarData) {
 	var tmp = lidarData.slice(103, 463);
-	// console.log(tmp)
-
-	// return tmp;
 	lidarData = tmp;
-	// console.log(lidarData);
-	// console.log(lidarData.length)
 	var ndata = [];
 	for(var i = 0; i < lidarData.length; i += 2) {
 		test = [lidarData[i]];
 		test2 = [lidarData[i+1]];
 		bytes = test.concat(test2);
 		var ntest = jspack.jspack.Unpack('H', bytes);
-		
-		console.log(ntest);
 		ndata.push(ntest[0]);
 	}
-
-	// console.log('ndata');
-	// console.log(ndata);
 	return ndata;
+}
+
+function getLidarData() {
+	return handledLidarData;
 }
 
 function getGyroData() {
@@ -550,25 +612,25 @@ function getGyroData() {
 
 function turnBackWardLeft() {
 	console.log('turnBackWardLeft')
-	trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\xc1' + '\x81' + '\x00' + '\x00' + '\x00' + '\x00';
+	var trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\xc1' + '\x81' + '\x00' + '\x00' + '\x00' + '\x00';
 	nmove(n_motor, trameMotor);
 }
 
 function turnBackWardRight() {
 	console.log('turnBackWardRight')
-	trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x81' + '\xc1' + '\x00' + '\x00' + '\x00' + '\x00';
+	var trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x81' + '\xc1' + '\x00' + '\x00' + '\x00' + '\x00';
 	nmove(n_motor, trameMotor);
 }
 
 function turnForwardRight() {
 	console.log('turnForwardRight')
-	trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x3f' + '\x00' + '\x00' + '\x00' + '\x00';
+	var trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x3f' + '\x00' + '\x00' + '\x00' + '\x00';
 	nmove(n_motor, trameMotor);
 }
 
 function turnForwardLeft() {
 	console.log('turnForwardLeft')
-	trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x3f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
+	var trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x3f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
 	nmove(n_motor, trameMotor);
 }
 
