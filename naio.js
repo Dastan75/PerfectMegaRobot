@@ -1,9 +1,10 @@
 const			net						= require('net');
 const           jspack				= require('jspack');
+// const           utils               = require('utils.js')()
 var				lidarData			= "";
 var				gyroData			= "";
- const			IP						= '127.0.0.1';
-// const			IP						= '192.168.1.95';
+ // const			IP						= '127.0.0.1';
+const			IP						= '192.168.1.95';
 //const			IP						= '192.168.10.194';
 var				trameMotor		= '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
 var connectIndex = 0;
@@ -150,8 +151,10 @@ function main() {
 			// if(all((Value == 4000)for Value in data)):
 				// Virage3t()
 			lidarData = getLidarData();
-
-			if ((lidarData != oldLidarData) && (init != 1)) {
+			console.log(lidarData)
+			console.log(oldLidarData)
+			console.log(lidarData.equals(oldLidarData));
+			if ((!lidarData.equals(oldLidarData)) && (init != 1)) {
 				console.log("Obstacle Détecté")
 				indexArray = [];
 				distanceArray = [];
@@ -165,36 +168,38 @@ function main() {
 				for(var i = 0; i < lidarData.length; i += 1) {
 					if(lidarData[i] != oldLidarData[i]) {
 						console.log(i);
-						// console.log(lidarData[i]);
 						indexArray.push(i)
 						distanceArray.push(lidarData[i])
 					}
 				}
 
 				for(var i = 0; i < indexArray.length; i += 1) {
-					calcArray.push((Math.cos(Math.radians(indexArray[i]))*distanceArray[i]).toFixed(2));
-					//console.log("lstindex : ",lstIndex[i])
-					//console.log("lstdistance : ",lstDistance[i])
-					//console.log("lstcalc : ",lstCalc[i])
+					var rad = Math.radians(indexArray[i]);
+					var cos = Math.cos(rad);
+					var calcValue = Math.round10(cos * distanceArray[i], 1);
+					calcArray.push(calcValue);
 
 				}
 
-				// console.log(calcArray)
-				// console.log('distanceArray');
-				// console.log(distanceArray)
-				// console.log('calcArray')
-				// console.log(calcArray)
-				// console.log('indexArray')
-				// console.log(indexArray)
+				console.log(calcArray)
+				console.log('distanceArray');
+				console.log(distanceArray)
+				console.log('calcArray')
+				console.log(calcArray)
+				console.log('indexArray')
+				console.log(indexArray)
 
 				for(var i = 0; i < calcArray.length; i += 1) {
 					for(var j = 0; j < calcArray.length; j += 1) {
+						// console.log('InDoubleFor');
 						if ((calcArray[i] == calcArray[j])
 							&& (j != i)
 							&& (calcArray[j] != 0)
 							&& (calcArray[i] != 0)
 							) {
 							result = alignArray1.indexOf(calcArray[j]);
+							// console.log("result")
+							// console.log(result)
 							if (result == -1) {
 								alignArray1.push(calcArray[j])
 								tmp = []
@@ -244,7 +249,7 @@ function main() {
 					w = 0
 					for (var i = 0; i < alignArray2.length; i += 1) {
 						//console.log ("Size : ", len(lstAlign2[j]), ", IT : ", j)
-						if ((alignArray2[i].length) < average) {
+						if (alignArray2[i].length < average) {
 							alignArray1.splice(i, 1);
 							alignArray2.splice(i, 1);
 							w = 1
@@ -253,17 +258,17 @@ function main() {
 					}
 				}
 
-				alignArray1.push(4000)
-				alignArray1.push(-4000)
+				alignArray1.push(4000);
+				alignArray1.push(-4000);
 				//Correction Trajectoire
 				console.log(alignArray1)
 				for(index in alignArray1) {
 					var value = alignArray1[index];
 					if(value < 0) {
-						tempArray.push(Math.abs(value))
+						tempArray.push(Math.abs(value));
 						// console.log('existDroite');
 					} else if (value > 0) {
-						tempArray2.push(value)
+						tempArray2.push(value);
 						// console.log('existGauche')
 					}
 				}
@@ -275,7 +280,7 @@ function main() {
 				});
 
 				if (distanceD > 1000) {
-					distanceD = 0
+					distanceD = 0;
 				}
 
 				// distanceG = Math.min(tempArray2)
@@ -284,36 +289,36 @@ function main() {
 				});
 
 				if (distanceG > 1000) {
-					distanceG = 0
+					distanceG = 0;
 				}
 				if ((distanceD != 0) && (distanceG != 0)) {
-					invRota = 0
+					invRota = 0;
 				}
 
 				if((distanceD == 0) && (distanceG>0) && (distanceG<700)) {
-					console.log("NOLIGNEDROITE")
-					distanceD = distanceG
+					console.log("NOLIGNEDROITE");
+					distanceD = distanceG;
 					if(invRota == 1) {
-						invRota = 2
+						invRota = 2;
 					}
 					if(saveOneRange == -1) {
-						saveOneRange = distanceG
+						saveOneRange = distanceG;
 					} else {
-						distanceD = saveOneRange
+						distanceD = saveOneRange;
 					}
 				}
 
 				if((distanceG == 0) && (distanceD > 0) && (distanceD < 700)) {
 					console.log("NOLIGNEGAUCHE")
-					distanceG = distanceD
+					distanceG = distanceD;
 					if(invRota == 1) {
-						invRota = 2
+						invRota = 2;
 					}
 					if(saveOneRange == -1) {
-						saveOneRange = distanceD
+						saveOneRange = distanceD;
 					}
 					else {
-						distanceG = saveOneRange
+						distanceG = saveOneRange;
 					}
 				}
 
@@ -384,7 +389,6 @@ function main() {
 				} else {
 					moveForward()
 					// Gpstemp = Gps
-					oldLidarData = lidarData;
 				}
 
 
@@ -402,11 +406,10 @@ function main() {
 				// turnBackWardLeft();
 				console.log("Action Par Default");
 				init = 0;
-				oldLidarData = lidarData;
 				// Gpstemp = Gps;
 				// datatemp = data;
 			}
-			// time.sleep(tps)
+			oldLidarData = lidarData;
 		}
 	}, intervalTime);
 	return 0
@@ -429,7 +432,6 @@ function Virage3t(nextVirage) {
 	console.log("Init Virage3t")
 	//Prise de distance
 	// console.log("debut de prise de distance")
-	// for(var i = 0; i < 50; i += 1) {
 	function priseDeDistance() {
 		var i = 0;
 		var newInterval = setInterval(function() {
@@ -477,7 +479,6 @@ function Virage3t(nextVirage) {
 			degs = getGyroData();
 			angle = angle + (degs);
 			console.log("Angle : " + angle)
-			// time.sleep(tps)
 		}, intervalTime)		
 	}
 
@@ -520,10 +521,9 @@ function getLidarData() {
 		test = [lidarData[i]];
 		test2 = [lidarData[i+1]];
 		bytes = test.concat(test2);
-		// var x = new Uint16Array(bytes)
 		var ntest = jspack.jspack.Unpack('H', bytes);
 		
-		// console.log(ntest);
+		console.log(ntest);
 		ndata.push(ntest[0]);
 	}
 
@@ -536,9 +536,9 @@ function getGyroData() {
   console.log('getGyroData');
   // console.log(gyroData);
 
-  var test2 = [gyroData.slice(16, 17)];
-  var test = [gyroData.slice(15, 16)];
-  bytes = test.concat(test2);
+  	var test2 = [gyroData.slice(16, 17)];
+  	var test = [gyroData.slice(15, 16)];
+  	bytes = test.concat(test2);
 	var ntest = jspack.jspack.Unpack('H', bytes);
 	ntest = Math.abs(ntest[0] * 0.02/28);
 	if((ntest<0.4) && (ntest>0.2)){
@@ -572,6 +572,7 @@ function turnForwardLeft() {
 	nmove(n_motor, trameMotor);
 }
 
+
 function removeDuplicates(array) {
 	var result = [];
 	array.forEach(function(item) {
@@ -582,4 +583,81 @@ function removeDuplicates(array) {
     return result;
 }
 
-// main()
+// Warn if overriding existing method
+if(Array.prototype.equals)
+    console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
+// attach the .equals method to Array's prototype to call it on any array
+Array.prototype.equals = function (array) {
+    // if the other array is a falsy value, return
+    if (!array)
+        return false;
+
+    // compare lengths - can save a lot of time 
+    if (this.length != array.length)
+        return false;
+
+    for (var i = 0, l=this.length; i < l; i++) {
+        // Check if we have nested arrays
+        if (this[i] instanceof Array && array[i] instanceof Array) {
+            // recurse into the nested arrays
+            if (!this[i].equals(array[i]))
+                return false;       
+        }           
+        else if (this[i] != array[i]) { 
+            // Warning - two different object instances will never be equal: {x:20} != {x:20}
+            return false;   
+        }           
+    }       
+    return true;
+}
+// Hide method from for-in loops
+Object.defineProperty(Array.prototype, "equals", {enumerable: false});
+
+
+(function() {
+  /**
+   * Decimal adjustment of a number.
+   *
+   * @param {String}  type  The type of adjustment.
+   * @param {Number}  value The number.
+   * @param {Integer} exp   The exponent (the 10 logarithm of the adjustment base).
+   * @returns {Number} The adjusted value.
+   */
+  function decimalAdjust(type, value, exp) {
+    // If the exp is undefined or zero...
+    if (typeof exp === 'undefined' || +exp === 0) {
+      return Math[type](value);
+    }
+    value = +value;
+    exp = +exp;
+    // If the value is not a number or the exp is not an integer...
+    if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+      return NaN;
+    }
+    // Shift
+    value = value.toString().split('e');
+    value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+    // Shift back
+    value = value.toString().split('e');
+    return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+  }
+
+  // Decimal round
+  if (!Math.round10) {
+    Math.round10 = function(value, exp) {
+      return decimalAdjust('round', value, exp);
+    };
+  }
+  // Decimal floor
+  if (!Math.floor10) {
+    Math.floor10 = function(value, exp) {
+      return decimalAdjust('floor', value, exp);
+    };
+  }
+  // Decimal ceil
+  if (!Math.ceil10) {
+    Math.ceil10 = function(value, exp) {
+      return decimalAdjust('ceil', value, exp);
+    };
+  }
+})();
