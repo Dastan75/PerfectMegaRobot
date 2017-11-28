@@ -494,6 +494,7 @@ function Virage3t(nextVirage) {
 		isPaused = false;		
 	}
 
+	priseDeDistance();
 
 }
 
