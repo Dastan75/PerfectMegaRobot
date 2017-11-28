@@ -176,7 +176,7 @@ function main() {
 				console.log(alignArray2)
 
 				var alignArray = [];
-				var maxLigne;
+				var maxLigne = 0;
 				alignArray = removeDuplicates(alignArray1)
 				size = 0
 
@@ -285,13 +285,13 @@ function main() {
 				}
 				if ((recentrage == 1) && (maxLigne < 12)) {
 					console.log("Recentrage aprés virage")
-					for(var i = 0; i < 10; i += 1) {
+					// for(var i = 0; i < 10; i += 1) {
 						if(nextVirage == 'droite') {
 							turnForwardLeft();
 						} else {
 							turnForwardRight();
 						}
-					}
+					// }
 				} else if (((distanceD + distanceG) / 2) > distanceG) {
 					console.log("Correction vers la droite")
 					turnForwardRight()
@@ -362,7 +362,7 @@ function main() {
 			}
 			// time.sleep(tps)
 		}
-	}, 25);
+	}, 1000);
 	return 0
 
 }
@@ -384,11 +384,11 @@ function Virage3t(nextVirage) {
 	var degs = 0
 	console.log("Init Virage3t")
 	//Prise de distance
-	console.log("debut de prise de distance")
+	// console.log("debut de prise de distance")
 	for(var i = 0; i < 50; i += 1) {
 		moveForward()
 	}
-	console.log("fin de prise de distance")
+	// console.log("fin de prise de distance")
 	//Rotation a 90°
 	while (angle < (90 + angleCor)) {
 		if(nextVirage === 'droite') {
@@ -414,7 +414,7 @@ function Virage3t(nextVirage) {
 		console.log("Angle : " + angle)
 		// time.sleep(tps)
 	}
-	console.log("fin virage : " + angle)
+	// console.log("fin virage : " + angle)
 	if(nextVirage === 'droite') {
 		nextVirage = 'gauche';
 	} else {
@@ -434,7 +434,7 @@ function moveForward() {
 }
 
 function getLidarData() {
-	console.log('getLidarData')
+	// console.log('getLidarData')
 	// return lidarData;
 	// console.log(lidarData);
 	var tmp = lidarData.slice(103, 463);
