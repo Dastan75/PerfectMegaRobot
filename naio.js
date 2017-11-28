@@ -119,6 +119,7 @@ saveOneRange = -1;
 angleCor = 0;
 recentrage = 0;
 invRota = 0;
+var isPaused = false;
 
 
 function main() {
@@ -141,7 +142,7 @@ function main() {
 	var degs = 0;
 	var dataDistanceD = 0;
 	var dataDistanceG = 0;
-	var isPaused = false
+	
 
 	setInterval(function() {
 		if(!isPaused) {
@@ -369,7 +370,6 @@ function main() {
 						console.log('VEUT FAIRE Virage3t')
 						isPaused = true;
 						Virage3t(nextVirage);
-						isPaused = false;
 					}
 				} else if (indexArray.every(isOverNinety)) {
 					// console.log(indexArray)
@@ -426,27 +426,29 @@ function isBetweenSixtyAndOneTwenty(currentValue) {
 }
 
 function Virage3t(nextVirage) {
-	var angle = 0
-	var degs = 0
 	console.log("Init Virage3t")
 	//Prise de distance
 	// console.log("debut de prise de distance")
 	// for(var i = 0; i < 50; i += 1) {
-	var i = 0;
-	var newInterval = setInterval(function() {
-		if(i >= 50) {
-			clearInterval(newInterval);
-		}
-		moveForward()
-		i++;
-	}, intervalTime)
-	// }
-	// console.log("fin de prise de distance")
-	//Rotation a 90°
-	while (angle < (90 + angleCor)) {
+	function priseDeDistance() {
+		var i = 0;
+		var newInterval = setInterval(function() {
+			if(i >= 50) {
+				clearInterval(newInterval);
+				rotation90Avant();
+			}
+			moveForward()
+			i++;
+		}, intervalTime)		
+	}
+
+	function rotation90Avant() {
+		var angle = 0;
+		var degs = 0;
 		var newInterval = setInterval(function() {
 			if(!(angle < (90 + angleCor))) {
 				clearInterval(newInterval);
+				rotation90Arriere();
 			}
 			if(nextVirage === 'droite') {
 				turnForwardRight();
@@ -456,34 +458,42 @@ function Virage3t(nextVirage) {
 			degs = getGyroData();
 			angle = angle + (degs);
 			console.log("Angle : " + angle)
-		}, intervalTime);
+		}, intervalTime);		
 	}
 
-	angle = 0;
-	var newInterval = setInterval(function() {
-		if(!(angle < 40)) {
-			clearInterval(newInterval);
-		}
+	function rotation90Arriere() {
+		var angle = 0;
+		var degs = 0;
+		var newInterval = setInterval(function() {
+			if(!(angle < 40)) {
+				clearInterval(newInterval);
+				endVirage3T();
+			}
+			if(nextVirage === 'droite') {
+				turnBackWardLeft();
+			} else {
+				turnBackWardRight();
+			}
+			degs = getGyroData();
+			angle = angle + (degs);
+			console.log("Angle : " + angle)
+			// time.sleep(tps)
+		}, intervalTime)		
+	}
+
+	function endVirage3T() {
 		if(nextVirage === 'droite') {
-			turnBackWardLeft();
+			nextVirage = 'gauche';
 		} else {
-			turnBackWardRight();
+			nextVirage = 'droite';
 		}
-		degs = getGyroData();
-		angle = angle + (degs);
-		console.log("Angle : " + angle)
-		// time.sleep(tps)
-	}, intervalTime)
-	// console.log("fin virage : " + angle)
-	if(nextVirage === 'droite') {
-		nextVirage = 'gauche';
-	} else {
-		nextVirage = 'droite';
+
+		recentrage = 1;
+		invRota = 1;
+		saveOneRange = -1;
+		isPaused = false;		
 	}
 
-	recentrage = 1
-	invRota = 1
-	saveOneRange = -1
 
 }
 
@@ -513,7 +523,7 @@ function getLidarData() {
 		var ntest = jspack.jspack.Unpack('H', bytes);
 		
 		// console.log(ntest);
-		ndata.push(ntest);
+		ndata.push(ntest[0]);
 	}
 
 	// console.log('ndata');
