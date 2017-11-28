@@ -2,9 +2,9 @@ const			net						= require('net');
 const           jspack				= require('jspack');
 var				lidarData			= "";
 var				gyroData			= "";
-// const			IP						= '127.0.0.1';
+ const			IP						= '127.0.0.1';
 // const			IP						= '192.168.1.95';
-const			IP						= '192.168.10.194';
+//const			IP						= '192.168.10.194';
 var				trameMotor		= '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
 var connectIndex = 0;
 
@@ -20,11 +20,12 @@ Math.degrees = function(radians) {
 
 function nconnect(HOST, PORT) {
 	var client = new net.Socket();
+	// console.log(HOST + ' : ' + PORT)
 	client.connect(PORT, HOST, function() {
 	    console.log('CONNECTED TO: ' + HOST + ':' + PORT);
 	    connectIndex ++;
 	    if(connectIndex == 3) {
-	    	// main();
+	    	main();
 	    	console.log('========================================================================================');
 	    }
 	});
@@ -41,18 +42,28 @@ function hex2a(hex) {
     return hex;
 }
 
-// function nlistenGyro(client) {
-// 	client.on('data', function(data) {
-// 		gyroData = hex2a(data);
-// 	});
-// }
+function nlistenGyro(client) {
+	client.on('data', function(data) {
+		gyroData = hex2a(data);
+	});
+}
 
 function nlistenLidarAndGyro(client) {
 	client.on('data', function(data) {
 		console.log('receive lidar data')
 		console.log(data.length);
+		console
+		// console.log(hex2a())
 
 		// console.log(hex2a(data));
+		if (data[6] == '0x0A') {
+			console.log('Gyro');
+			gyroData = hex2a(data);
+		}
+		if (data[6] == '0x07') {
+			console.log('Lidar');
+			lidarData = data;	
+		}
 		// console.log("lydar", data)
 		// lidarData = hex2a(data);
 		// lidarData = data;
@@ -80,16 +91,26 @@ function nmove (client, trameMotor) {
 	// }, 30);
 }
 
-// var n_motor = nconnect(IP, 3331);
-// var n_lidar = nconnect(IP, 3337);
-// var n_gyro 	= nconnect(IP, 3340);
 
-var n_motor = nconnect(IP, 5555);
-var n_lidarAndGyro = nconnect(IP, 5555);
-// var n_gyro 	= nconnect(IP, 5555);
+//OLD SIMU
+var n_motor = nconnect(IP, 3331);
+var n_lidar = nconnect(IP, 3337);
+var n_gyro 	= nconnect(IP, 3340);
+nlistenLidarAndGyro(n_gyro);
+nlistenLidarAndGyro(n_lidar);
 
-nlistenLidarAndGyro(n_lidarAndGyro);
-// nlistenGyro(n_gyro);
+
+
+//NEW SIMU
+//var n_motor = nconnect(IP, 5559);
+//var n_lidarAndGyro = nconnect(IP, 5559);
+
+//REAL ROBOT
+// var n_motor = nconnect(IP, 5555);
+// var n_lidarAndGyro = nconnect(IP, 5555);
+
+// nlistenLidarAndGyro(n_lidarAndGyro);
+
 nmove(n_motor);
 
 
