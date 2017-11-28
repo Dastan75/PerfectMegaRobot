@@ -444,13 +444,13 @@ function getGyroData() {
 
 function turnBackWardLeft() {
 	console.log('turnBackWardLeft')
-	trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x81' + '\x81' + '\x00' + '\x00' + '\x00' + '\x00';
+  trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\xc1' + '\x81' + '\x00' + '\x00' + '\x00' + '\x00';
 	nmove(n_motor, trameMotor);
 }
 
 function turnBackWardRight() {
 	console.log('turnBackWardRight')
-	trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x81' + '\x81' + '\x00' + '\x00' + '\x00' + '\x00';
+  trameMotor = '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x81' + '\xc1' + '\x00' + '\x00' + '\x00' + '\x00';
 	nmove(n_motor, trameMotor);
 }
 
