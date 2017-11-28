@@ -3,7 +3,8 @@ const           jspack				= require('jspack');
 var				lidarData			= "";
 var				gyroData			= "";
 // const			IP						= '127.0.0.1';
-const			IP						= '192.168.1.95';
+// const			IP						= '192.168.1.95';
+const			IP						= '27.18.56.70';
 var				trameMotor		= '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
 var connectIndex = 0;
 
@@ -252,24 +253,33 @@ function main() {
 					invRota = 0
 				}
 
-				checkForLignes(distanceD, distanceG, 'droite'); //checkLign
-				checkForLignes(distanceG, distanceD, 'gauche');
-
-				function checkForLignes(distance1, distance2, checkDirection) {
-					if((distance1 == 0) && (distance2 > 0) && (distance2 < 700)) {
-						console.log("Pas de ligne " + checkDirection)
-						distance1 = distance2
-						if(invRota == 1) {
-							invRota = 2
-						}
-
-						if(saveOneRange == -1) {
-							saveOneRange = distance2;
-						} else {
-							distance1 = saveOneRange
-						}
+				if((distanceD == 0) && (distanceG>0) && (distanceG<700)) {
+					console.log("NOLIGNEDROITE")
+					distanceD = distanceG
+					if(invRota == 1) {
+						invRota = 2
+					}
+					if(saveOneRange == -1) {
+						saveOneRange = distanceG
+					} else {
+						distanceD = saveOneRange
 					}
 				}
+
+				if((distanceG == 0) && (distanceD > 0) && (distanceD < 700)) {
+					console.log("NOLIGNEGAUCHE")
+					distanceG = distanceD
+					if(invRota == 1) {
+						invRota = 2
+					}
+					if(saveOneRange == -1) {
+						saveOneRange = distanceD
+					}
+					else {
+						distanceG = saveOneRange
+					}
+				}
+
 
 				//Sequence d'instruction Motors
 
@@ -362,7 +372,7 @@ function main() {
 			}
 			// time.sleep(tps)
 		}
-	}, 1000);
+	}, 100);
 	return 0
 
 }

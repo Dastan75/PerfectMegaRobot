@@ -11,7 +11,7 @@ import time
 from struct import *
 
 global G_IP
-G_IP = "192.168.1.95"
+G_IP = "27.18.56.70"
 #G_IP = "127.0.0.1"
 #G_IP = "192.168.1.146"
 
