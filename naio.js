@@ -7,6 +7,7 @@ var				gyroData			= "";
 //const			IP						= '192.168.10.194';
 var				trameMotor		= '\x4e' + '\x41' + '\x49' + '\x4f' + '\x30' + '\x31' + '\x01' + '\x00' + '\x00' + '\x00' + '\x02' + '\x7f' + '\x7f' + '\x00' + '\x00' + '\x00' + '\x00';
 var connectIndex = 0;
+var intervalTime = 30;
 
 // Converts from degrees to radians.
 Math.radians = function(degrees) {
@@ -20,7 +21,6 @@ Math.degrees = function(radians) {
 
 function nconnect(HOST, PORT) {
 	var client = new net.Socket();
-	// console.log(HOST + ' : ' + PORT)
 	client.connect(PORT, HOST, function() {
 	    console.log('CONNECTED TO: ' + HOST + ':' + PORT);
 	    connectIndex ++;
@@ -42,17 +42,16 @@ function hex2a(hex) {
     return hex;
 }
 
-function nlistenGyro(client) {
-	client.on('data', function(data) {
-		gyroData = hex2a(data);
-	});
-}
+// function nlistenGyro(client) {
+// 	client.on('data', function(data) {
+// 		gyroData = hex2a(data);
+// 	});
+// }
 
 function nlistenLidarAndGyro(client) {
 	client.on('data', function(data) {
 		console.log('receive lidar data')
 		console.log(data.length);
-		console
 		// console.log(hex2a())
 
 		// console.log(hex2a(data));
@@ -71,18 +70,18 @@ function nlistenLidarAndGyro(client) {
 	});
 }
 
-function nlistenLidar(client) {
-	client.on('data', function(data) {
-		console.log('receive lidar data')
-		console.log(data.length);
+// function nlistenLidar(client) {
+// 	client.on('data', function(data) {
+// 		console.log('receive lidar data')
+// 		console.log(data.length);
 
-		// console.log(hex2a(data));
-		// console.log("lydar", data)
-		// lidarData = hex2a(data);
-		// lidarData = data;
-		// getLidarData();
-	});
-}
+// 		// console.log(hex2a(data));
+// 		// console.log("lydar", data)
+// 		// lidarData = hex2a(data);
+// 		// lidarData = data;
+// 		// getLidarData();
+// 	});
+// }
 
 function nmove (client, trameMotor) {
 	// setInterval(function(){
@@ -104,11 +103,11 @@ nlistenLidarAndGyro(n_lidar);
 //NEW SIMU
 //var n_motor = nconnect(IP, 5559);
 //var n_lidarAndGyro = nconnect(IP, 5559);
+// nlistenLidarAndGyro(n_lidarAndGyro);
 
 //REAL ROBOT
 // var n_motor = nconnect(IP, 5555);
 // var n_lidarAndGyro = nconnect(IP, 5555);
-
 // nlistenLidarAndGyro(n_lidarAndGyro);
 
 nmove(n_motor);
@@ -116,7 +115,6 @@ nmove(n_motor);
 
 var invRota, size, recentrage, angleCor, tps, saveOneRange;
 var nextVirage = 'droite';
-tps = 0.2;
 saveOneRange = -1;
 angleCor = 0;
 recentrage = 0;
@@ -410,7 +408,7 @@ function main() {
 			}
 			// time.sleep(tps)
 		}
-	}, 100);
+	}, intervalTime);
 	return 0
 
 }
@@ -433,25 +431,39 @@ function Virage3t(nextVirage) {
 	console.log("Init Virage3t")
 	//Prise de distance
 	// console.log("debut de prise de distance")
-	for(var i = 0; i < 50; i += 1) {
+	// for(var i = 0; i < 50; i += 1) {
+	var i = 0;
+	var newInterval = setInterval(function() {
+		if(i >= 50) {
+			clearInterval(newInterval);
+		}
 		moveForward()
-	}
+		i++;
+	}, intervalTime)
+	// }
 	// console.log("fin de prise de distance")
 	//Rotation a 90°
 	while (angle < (90 + angleCor)) {
-		if(nextVirage === 'droite') {
-			turnForwardRight();
-		} else {
-			turnForwardLeft();
-		}
-		degs = getGyroData();
-		angle = angle + (degs);
-		console.log("Angle : " + angle)
-		// time.sleep(tps)
+		var newInterval = setInterval(function() {
+			if(!(angle < (90 + angleCor))) {
+				clearInterval(newInterval);
+			}
+			if(nextVirage === 'droite') {
+				turnForwardRight();
+			} else {
+				turnForwardLeft();
+			}
+			degs = getGyroData();
+			angle = angle + (degs);
+			console.log("Angle : " + angle)
+		}, intervalTime);
 	}
 
 	angle = 0;
-	while (angle < 40) {
+	var newInterval = setInterval(function() {
+		if(!(angle < 40)) {
+			clearInterval(newInterval);
+		}
 		if(nextVirage === 'droite') {
 			turnBackWardLeft();
 		} else {
@@ -461,7 +473,7 @@ function Virage3t(nextVirage) {
 		angle = angle + (degs);
 		console.log("Angle : " + angle)
 		// time.sleep(tps)
-	}
+	}, intervalTime)
 	// console.log("fin virage : " + angle)
 	if(nextVirage === 'droite') {
 		nextVirage = 'gauche';
